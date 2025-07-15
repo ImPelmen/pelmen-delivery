@@ -28,6 +28,9 @@ public class Restaurant {
     @Column(name = "address")
     private String address;
 
+    @Column(name = "description")
+    private String description;
+
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "restaurant")
     private List<Meal> meals = new ArrayList<>();
 

@@ -1,7 +1,5 @@
 package kz.pelmen_delivery.model.dto;
 
-import kz.pelmen_delivery.model.entity.DomainOrder;
-import kz.pelmen_delivery.model.entity.Meal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +19,8 @@ public class RestaurantDto {
     private String name;
 
     private String address;
+
+    private String description;
 
     private List<MealDto> meals;
 
