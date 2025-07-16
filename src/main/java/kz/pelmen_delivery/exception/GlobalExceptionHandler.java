@@ -63,4 +63,11 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.NOT_FOUND;
         return new ResponseEntity<>(new ErrorResponse(status, e.getMessage()), status);
     }
+
+    @ExceptionHandler(MealNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<ErrorResponse> handleMealNotFoundException(MealNotFoundException e) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        return new ResponseEntity<>(new ErrorResponse(status, e.getMessage()), status);
+    }
 }

@@ -13,18 +13,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MealRequest {
 
-    @NotNull
-    private Long restaurantId;
-
     @NotBlank
     private String name;
 
     @NotBlank
     private String description;
 
-    @NotBlank
+    @NotNull
     private Long price;
 
-    @NotBlank
+    @NotNull
     private Long mealCategoryId;
 }

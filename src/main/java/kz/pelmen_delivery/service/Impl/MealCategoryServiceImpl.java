@@ -1,10 +1,13 @@
 package kz.pelmen_delivery.service.Impl;
 
 import kz.pelmen_delivery.exception.MealCategoryNotFoundException;
+import kz.pelmen_delivery.exception.RestaurantNotFoundException;
 import kz.pelmen_delivery.model.dto.MealCategoryDto;
 import kz.pelmen_delivery.model.entity.MealCategory;
+import kz.pelmen_delivery.model.entity.Restaurant;
 import kz.pelmen_delivery.model.request.MealCategoryRequest;
 import kz.pelmen_delivery.repository.MealCategoryRepository;
+import kz.pelmen_delivery.repository.RestaurantRepository;
 import kz.pelmen_delivery.service.MealCategoryService;
 import kz.pelmen_delivery.util.ObjectMapperUtil;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +24,24 @@ public class MealCategoryServiceImpl implements MealCategoryService {
 
     private final MealCategoryRepository categoryRepository;
 
+    private final RestaurantRepository restaurantRepository;
+
     private final ObjectMapperUtil objectMapperUtil;
 
     @Override
     public void createCategory(MealCategoryRequest request) {
+        Long restaurantId = request.getRestaurantId();
+        Optional<Restaurant> restaurantOptional = restaurantRepository.findById(restaurantId);
+        if (restaurantOptional.isEmpty()) {
+            log.error("Restaurant with id {} is not found!", restaurantId);
+            throw new RestaurantNotFoundException(String.format("Ресторан с номером %s не найден!", restaurantId));
+        }
+        Restaurant restaurant = restaurantOptional.get();
+
         MealCategory mealCategory = MealCategory.builder()
                 .name(request.getName())
                 .description(request.getDescription())
+                .restaurant(restaurant)
                 .build();
 
         categoryRepository.save(mealCategory);

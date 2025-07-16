@@ -1,5 +1,6 @@
 package kz.pelmen_delivery.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -31,8 +32,9 @@ public class Restaurant {
     @Column(name = "description")
     private String description;
 
+    @JsonManagedReference
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "restaurant")
-    private List<Meal> meals = new ArrayList<>();
+    private List<MealCategory> mealCategories = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "restaurant")
     private List<DomainOrder> orders = new ArrayList<>();
