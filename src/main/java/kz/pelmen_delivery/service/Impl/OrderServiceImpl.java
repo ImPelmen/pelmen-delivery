@@ -57,7 +57,7 @@ public class OrderServiceImpl implements OrderService {
             order = orderRepository.findByRestaurantIdAndCreateByAndStatusIn(request.getRestaurantId(), username, OrderStatus.getActiveStatuses())
                     .orElseThrow(
                             () -> new OrderNotFoundException(""));
-            addMeal(order, meal);
+            order = addMeal(order, meal);
         } catch (OrderNotFoundException ignored) {
             order = createOrder(request, username, meal);
         }
@@ -105,11 +105,12 @@ public class OrderServiceImpl implements OrderService {
         return domainOrder;
     }
 
-    private void addMeal(DomainOrder order, Meal meal) {
+    private DomainOrder addMeal(DomainOrder order, Meal meal) {
         List<Meal> meals = order.getMeals();
         meals.add(meal);
         order.setMeals(meals);
         orderRepository.save(order);
+        return order;
     }
 
     private DomainOrder findOrderById(Long id) {
