@@ -40,6 +40,7 @@ public class Restaurant {
     private List<DomainOrder> orders = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "restaurant")
+    @JsonManagedReference
     private List<RestaurantUser> restaurantUsers = new ArrayList<>();
 
     @Column(name = "created_at")

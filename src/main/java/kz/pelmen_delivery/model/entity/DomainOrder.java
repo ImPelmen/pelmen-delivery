@@ -1,6 +1,9 @@
 package kz.pelmen_delivery.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import kz.pelmen_delivery.model.enums.OrderStatus;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -28,14 +31,20 @@ public class DomainOrder {
     @Column(name = "created_by")
     private String createdBy;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private OrderStatus status;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id")
+    @JsonBackReference
     private Restaurant restaurant;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "order_meal",
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "meal_id"))
+    @JsonManagedReference
     private List<Meal> meals = new ArrayList<>();
 
     @Column(name = "created_at")

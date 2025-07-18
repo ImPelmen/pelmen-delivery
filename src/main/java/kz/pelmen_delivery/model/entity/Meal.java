@@ -37,6 +37,7 @@ public class Meal {
     @JoinColumn(name = "category_id", nullable = false)
     private MealCategory mealCategory;
 
+    @JsonBackReference
     @Column(name = "created_at")
     @CreationTimestamp
     private LocalDateTime createdAt;
