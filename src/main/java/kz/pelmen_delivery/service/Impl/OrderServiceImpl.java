@@ -9,6 +9,7 @@ import kz.pelmen_delivery.model.dto.DomainOrderDto;
 import kz.pelmen_delivery.model.entity.DomainOrder;
 import kz.pelmen_delivery.model.entity.Meal;
 import kz.pelmen_delivery.model.entity.Restaurant;
+import kz.pelmen_delivery.model.request.ChangeOrderStatusRequest;
 import kz.pelmen_delivery.model.request.OrderRequest;
 import kz.pelmen_delivery.repository.DomainOrderRepository;
 import kz.pelmen_delivery.repository.MealRepository;
@@ -54,7 +55,9 @@ public class OrderServiceImpl implements OrderService {
         }
         Meal meal = mealOptional.get();
         try {
-            order = orderRepository.findByRestaurantIdAndCreateByAndStatusIn(request.getRestaurantId(), username, OrderStatus.getActiveStatuses())
+            order = orderRepository.findByRestaurantIdAndCreatedByAndStatusIn(meal.getMealCategory()
+                                    .getRestaurant().getId(),
+                            username, OrderStatus.getActiveStatuses())
                     .orElseThrow(
                             () -> new OrderNotFoundException(""));
             order = addMeal(order, meal);
@@ -87,8 +90,25 @@ public class OrderServiceImpl implements OrderService {
                 .toList();
     }
 
+    @Override
+    public DomainOrderDto changeOrderStatus(Long id, ChangeOrderStatusRequest orderStatusRequest) {
+        //TODO: В дальнейшем надо будет проверять, может ли этот пользователь на данном этапе менять статус
+        DomainOrder order = findOrderById(id);
+        OrderStatus status = OrderStatus.findByTitle(orderStatusRequest.getStatusTitle());
+        order.setStatus(status);
+        orderRepository.save(order);
+        return objectMapperUtil.convert(order, DomainOrderDto.class);
+    }
+
+    public DomainOrderDto confirmOrder(Long id) {
+        DomainOrder order = findOrderById(id);
+        order.setStatus(OrderStatus.OPENED);
+        orderRepository.save(order);
+        return objectMapperUtil.convert(order, DomainOrderDto.class);
+    }
+
     private DomainOrder createOrder(OrderRequest request, String username, Meal meal) {
-        Long restaurantId = request.getRestaurantId();
+        Long restaurantId = meal.getMealCategory().getRestaurant().getId();
         Optional<Restaurant> restaurantOptional = restaurantRepository.findById(restaurantId);
         if (restaurantOptional.isEmpty()) {
             throw new RestaurantNotFoundException(String.format("Ресторан с номером %s не найден", restaurantId));
@@ -99,7 +119,7 @@ public class OrderServiceImpl implements OrderService {
                 .createdBy(username)
                 .restaurant(restaurant)
                 .meals(List.of(meal))
-                .status(OrderStatus.OPEN)
+                .status(OrderStatus.CREATED)
                 .build();
         orderRepository.save(domainOrder);
         return domainOrder;

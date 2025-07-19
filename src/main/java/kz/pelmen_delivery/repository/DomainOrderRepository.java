@@ -13,7 +13,7 @@ import java.util.Set;
 @Repository
 public interface DomainOrderRepository extends JpaRepository<DomainOrder, Long> {
 
-    Optional<DomainOrder> findByRestaurantIdAndCreateByAndStatusIn(Long restaurantId, String createdBy,
+    Optional<DomainOrder> findByRestaurantIdAndCreatedByAndStatusIn(Long restaurantId, String createdBy,
                                                                    Set<OrderStatus> statuses);
 
     List<DomainOrder> findAllByCreatedBy(String username);

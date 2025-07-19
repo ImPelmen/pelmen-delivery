@@ -13,15 +13,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MealRequest {
 
-    @NotBlank
+    @NotBlank(message = "Название блюда не может быть пустым!")
     private String name;
 
-    @NotBlank
+    @NotBlank(message = "Описание блюда не может быть пустым!")
     private String description;
 
-    @NotNull
+    @NotNull(message = "Цена блюда не может быть пустой!")
     private Long price;
 
-    @NotNull
+    @NotNull(message = "Не передан номер категории блюда!")
     private Long mealCategoryId;
 }

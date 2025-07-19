@@ -8,8 +8,10 @@ import java.util.Set;
 @Getter
 @AllArgsConstructor
 public enum OrderStatus {
-    OPEN("Открыто"),
+    CREATED("Создано"),
+    OPENED("Открыто"),
     IN_WORK("В работе"),
+    WAITING_TO_PICKUP("Ожидает доставки"),
     DELIVERING("Доставляется"),
     DELIVERED("Доставлен"),
     CANCELED("Отменен");
@@ -28,6 +30,6 @@ public enum OrderStatus {
     }
 
     public static Set<OrderStatus> getActiveStatuses() {
-        return Set.of(OPEN, IN_WORK, DELIVERING);
+        return Set.of(CREATED);
     }
 }
