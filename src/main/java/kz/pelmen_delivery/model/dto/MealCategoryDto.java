@@ -1,5 +1,6 @@
 package kz.pelmen_delivery.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,9 @@ public class MealCategoryDto {
     private String name;
 
     private String description;
+
+    @JsonBackReference
+    private RestaurantDto restaurant;
 
     private List<MealDto> meals;
 
