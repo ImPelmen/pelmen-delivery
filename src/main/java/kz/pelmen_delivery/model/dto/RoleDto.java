@@ -13,15 +13,11 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MealCategoryDto {
+public class RoleDto {
 
     private Long id;
 
     private String name;
-
-    private String description;
-
-    private List<MealDto> meals;
 
     private LocalDateTime createdAt;
 

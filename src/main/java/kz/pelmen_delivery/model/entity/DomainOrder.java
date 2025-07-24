@@ -40,12 +40,17 @@ public class DomainOrder {
     @JsonBackReference
     private Restaurant restaurant;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "order_meal",
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "meal_id"))
     @JsonManagedReference
     private List<Meal> meals = new ArrayList<>();
+
+    @JsonManagedReference
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_object_id")
+    private DomainObject domainObject;
 
     @Column(name = "created_at")
     @CreationTimestamp

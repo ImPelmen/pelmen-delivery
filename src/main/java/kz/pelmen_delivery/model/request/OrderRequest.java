@@ -14,4 +14,6 @@ public class OrderRequest {
 
     @NotNull(message = "Невозможно заказать блюдо с пустым номером!")
     private Long mealId;
+
+    private Long objectId;
 }
