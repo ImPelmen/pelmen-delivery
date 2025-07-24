@@ -9,7 +9,7 @@ import kz.pelmen_delivery.model.request.MealCategoryRequest;
 import kz.pelmen_delivery.repository.MealCategoryRepository;
 import kz.pelmen_delivery.repository.RestaurantRepository;
 import kz.pelmen_delivery.service.MealCategoryService;
-import kz.pelmen_delivery.util.ObjectMapperUtil;
+import kz.pelmen_delivery.util.ModelMapperUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,8 +25,6 @@ public class MealCategoryServiceImpl implements MealCategoryService {
     private final MealCategoryRepository categoryRepository;
 
     private final RestaurantRepository restaurantRepository;
-
-    private final ObjectMapperUtil objectMapperUtil;
 
     @Override
     public void createCategory(MealCategoryRequest request) {
@@ -50,14 +48,14 @@ public class MealCategoryServiceImpl implements MealCategoryService {
     @Override
     public List<MealCategoryDto> getAll() {
         return categoryRepository.findAll().stream()
-                .map(mealCategory -> objectMapperUtil.convert(mealCategory, MealCategoryDto.class))
+                .map(mealCategory -> ModelMapperUtil.map(mealCategory, MealCategoryDto.class))
                 .toList();
     }
 
     @Override
     public MealCategoryDto findById(Long id) {
         MealCategory mealCategory = findMealCategoryById(id);
-        return objectMapperUtil.convert(mealCategory, MealCategoryDto.class);
+        return ModelMapperUtil.map(mealCategory, MealCategoryDto.class);
     }
 
     @Override

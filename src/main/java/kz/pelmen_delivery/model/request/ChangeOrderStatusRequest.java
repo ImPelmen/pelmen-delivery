@@ -14,4 +14,6 @@ public class ChangeOrderStatusRequest {
 
     @NotBlank(message = "Статус заказа не может быть пустым!")
     private String statusTitle;
+
+    private Long objectId;
 }

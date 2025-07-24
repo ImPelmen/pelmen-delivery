@@ -77,4 +77,18 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.NOT_FOUND;
         return new ResponseEntity<>(new ErrorResponse(status, e.getMessage()), status);
     }
+
+    @ExceptionHandler(IllegalStatusException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorResponse> handleIllegalStatusException(IllegalStatusException e) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return new ResponseEntity<>(new ErrorResponse(status, e.getMessage()), status);
+    }
+
+    @ExceptionHandler(IllegalObjectSelectionException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorResponse> handleIllegalObjectSelectionException(IllegalObjectSelectionException e) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return new ResponseEntity<>(new ErrorResponse(status, e.getMessage()), status);
+    }
 }

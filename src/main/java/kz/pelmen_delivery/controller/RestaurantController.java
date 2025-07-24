@@ -49,4 +49,9 @@ public class RestaurantController {
         restaurantService.deleteRestaurant(id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping(value = "search",params = "name")
+    public ResponseEntity<RestaurantDto> findByName(@RequestParam String name) {
+        return ResponseEntity.ok(restaurantService.findByName(name));
+    }
 }

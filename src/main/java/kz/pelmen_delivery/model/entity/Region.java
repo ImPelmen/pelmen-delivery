@@ -1,14 +1,11 @@
 package kz.pelmen_delivery.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +14,10 @@ import java.util.List;
 @Setter
 @Entity
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "meal_category")
-public class MealCategory {
+@AllArgsConstructor
+@Table(name = "region")
+public class Region {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,16 +26,9 @@ public class MealCategory {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "description")
-    private String description;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurant_id", nullable = false)
-    private Restaurant restaurant;
-
-    @JsonManagedReference
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "mealCategory")
-    private List<Meal> meals = new ArrayList<>();
+    @JsonBackReference
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "region")
+    private List<DomainObject> domainObjects = new ArrayList<>();
 
     @Column(name = "created_at")
     @CreationTimestamp

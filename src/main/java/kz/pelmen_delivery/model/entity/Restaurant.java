@@ -1,5 +1,6 @@
 package kz.pelmen_delivery.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,15 +33,15 @@ public class Restaurant {
     @Column(name = "description")
     private String description;
 
-    @JsonManagedReference
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "restaurant")
     private List<MealCategory> mealCategories = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "restaurant")
     private List<DomainOrder> orders = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "restaurant")
     @JsonManagedReference
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "restaurant")
     private List<RestaurantUser> restaurantUsers = new ArrayList<>();
 
     @Column(name = "created_at")

@@ -17,4 +17,6 @@ public interface RestaurantService {
     void updateRestaurant(Long id, RestaurantRequest request);
 
     void deleteRestaurant(Long id);
+
+    RestaurantDto findByName(String name);
 }

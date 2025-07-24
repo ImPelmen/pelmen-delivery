@@ -1,9 +1,8 @@
 package kz.pelmen_delivery.service.Impl;
 
 import jakarta.transaction.Transactional;
-import kz.pelmen_delivery.exception.MealNotFoundException;
-import kz.pelmen_delivery.exception.OrderNotFoundException;
-import kz.pelmen_delivery.exception.RestaurantNotFoundException;
+import kz.pelmen_delivery.exception.*;
+import kz.pelmen_delivery.model.entity.DomainObject;
 import kz.pelmen_delivery.model.enums.OrderStatus;
 import kz.pelmen_delivery.model.dto.DomainOrderDto;
 import kz.pelmen_delivery.model.entity.DomainOrder;
@@ -11,16 +10,19 @@ import kz.pelmen_delivery.model.entity.Meal;
 import kz.pelmen_delivery.model.entity.Restaurant;
 import kz.pelmen_delivery.model.request.ChangeOrderStatusRequest;
 import kz.pelmen_delivery.model.request.OrderRequest;
+import kz.pelmen_delivery.repository.DomainObjectRepository;
 import kz.pelmen_delivery.repository.DomainOrderRepository;
 import kz.pelmen_delivery.repository.MealRepository;
 import kz.pelmen_delivery.repository.RestaurantRepository;
 import kz.pelmen_delivery.service.OrderService;
-import kz.pelmen_delivery.util.ObjectMapperUtil;
+import kz.pelmen_delivery.util.ModelMapperUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -30,17 +32,17 @@ public class OrderServiceImpl implements OrderService {
 
     private final DomainOrderRepository orderRepository;
 
-    private final ObjectMapperUtil objectMapperUtil;
-
     private final MealRepository mealRepository;
 
     private final RestaurantRepository restaurantRepository;
+
+    private final DomainObjectRepository domainObjectRepository;
 
     @Override
     public List<DomainOrderDto> getAll() {
         return orderRepository.findAll()
                 .stream()
-                .map(order -> objectMapperUtil.convert(order, DomainOrderDto.class))
+                .map(order -> ModelMapperUtil.map(order, DomainOrderDto.class))
                 .toList();
     }
 
@@ -64,13 +66,13 @@ public class OrderServiceImpl implements OrderService {
         } catch (OrderNotFoundException ignored) {
             order = createOrder(request, username, meal);
         }
-        return objectMapperUtil.convert(order, DomainOrderDto.class);
+        return ModelMapperUtil.map(order, DomainOrderDto.class);
     }
 
     @Override
     public DomainOrderDto getOrderById(Long id) {
         DomainOrder order = findOrderById(id);
-        return objectMapperUtil.convert(order, DomainOrderDto.class);
+        return ModelMapperUtil.map(order, DomainOrderDto.class);
     }
 
     @Override
@@ -79,14 +81,14 @@ public class OrderServiceImpl implements OrderService {
         DomainOrder order = findOrderById(id);
         order.getMeals().clear();
         orderRepository.save(order);
-        return objectMapperUtil.convert(order, DomainOrderDto.class);
+        return ModelMapperUtil.map(order, DomainOrderDto.class);
     }
 
     @Override
     public List<DomainOrderDto> getOrderByUsername(String username) {
         List<DomainOrder> orders = orderRepository.findAllByCreatedBy(username);
         return orders.stream()
-                .map(order -> objectMapperUtil.convert(order, DomainOrderDto.class))
+                .map(order -> ModelMapperUtil.map(order, DomainOrderDto.class))
                 .toList();
     }
 
@@ -95,16 +97,40 @@ public class OrderServiceImpl implements OrderService {
         //TODO: В дальнейшем надо будет проверять, может ли этот пользователь на данном этапе менять статус
         DomainOrder order = findOrderById(id);
         OrderStatus status = OrderStatus.findByTitle(orderStatusRequest.getStatusTitle());
+        switch (status) {
+            case OPENED -> {
+                Long objectId = orderStatusRequest.getObjectId();
+                if (Objects.isNull(objectId)) {
+                    log.error("Can not open order without destination object");
+                    throw new IllegalObjectSelectionException("Не можем сделать заказ без адреса доставки!");
+                }
+                Optional<DomainObject> domainObjectOptional = domainObjectRepository.findById(objectId);
+                if (domainObjectOptional.isEmpty()) {
+                    throw new IllegalObjectSelectionException(String.format("Адрес с номером %s не найден!", objectId));
+                }
+                DomainObject domainObject = domainObjectOptional.get();
+                order.setDomainObject(domainObject);
+            }
+            case IN_WORK -> {}
+            case WAITING_TO_PICKUP -> {}
+            case DELIVERING -> {}
+            case CANCELED -> {}
+            case DELIVERED -> {}
+            default -> {
+                log.error("Can not save status with title {} to order with id {}", orderStatusRequest.getStatusTitle(), id);
+                throw new IllegalStatusException(String.format("Нельзя присвоить статус %s к заказу!", orderStatusRequest.getStatusTitle()));
+            }
+        }
         order.setStatus(status);
         orderRepository.save(order);
-        return objectMapperUtil.convert(order, DomainOrderDto.class);
+        return ModelMapperUtil.map(order, DomainOrderDto.class);
     }
 
     public DomainOrderDto confirmOrder(Long id) {
         DomainOrder order = findOrderById(id);
         order.setStatus(OrderStatus.OPENED);
         orderRepository.save(order);
-        return objectMapperUtil.convert(order, DomainOrderDto.class);
+        return ModelMapperUtil.map(order, DomainOrderDto.class);
     }
 
     private DomainOrder createOrder(OrderRequest request, String username, Meal meal) {

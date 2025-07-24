@@ -1,14 +1,15 @@
 package kz.pelmen_delivery.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,29 +17,33 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "meal_category")
-public class MealCategory {
+@Table(name = "domain_object")
+public class DomainObject {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "address")
+    private String address;
 
-    @Column(name = "description")
-    private String description;
+    @Column(name = "is_apartment")
+    private boolean isApartment;
 
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurant_id", nullable = false)
-    private Restaurant restaurant;
+    @JoinColumn(name = "user_id")
+    private DomainUser user;
 
     @JsonManagedReference
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "mealCategory")
-    private List<Meal> meals = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_id")
+    private Region region;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "domainObject")
+    private List<DomainOrder> orders = new ArrayList<>();
 
     @Column(name = "created_at")
     @CreationTimestamp

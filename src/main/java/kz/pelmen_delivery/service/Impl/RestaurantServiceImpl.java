@@ -2,7 +2,7 @@ package kz.pelmen_delivery.service.Impl;
 
 import kz.pelmen_delivery.exception.RestaurantAlreadyExistsException;
 import kz.pelmen_delivery.exception.RestaurantNotFoundException;
-import kz.pelmen_delivery.util.ObjectMapperUtil;
+import kz.pelmen_delivery.util.ModelMapperUtil;
 import kz.pelmen_delivery.model.dto.RestaurantDto;
 import kz.pelmen_delivery.model.entity.Restaurant;
 import kz.pelmen_delivery.model.request.RestaurantRequest;
@@ -22,13 +22,11 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
 
-    private final ObjectMapperUtil objectMapperUtil;
-
     @Override
     public List<RestaurantDto> getAllRestaurants() {
         List<Restaurant> restaurants = restaurantRepository.findAll();
         return restaurants.stream()
-                .map(restaurant -> objectMapperUtil.convert(restaurant, RestaurantDto.class)).toList();
+                .map(restaurant -> ModelMapperUtil.map(restaurant, RestaurantDto.class)).toList();
     }
 
     @Override
@@ -52,7 +50,7 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     public RestaurantDto getRestaurantInfo(Long id) {
         Restaurant restaurant = findRestaurantById(id);
-        return objectMapperUtil.convert(restaurant, RestaurantDto.class);
+        return ModelMapperUtil.map(restaurant, RestaurantDto.class);
     }
 
     @Override
@@ -82,4 +80,16 @@ public class RestaurantServiceImpl implements RestaurantService {
         Restaurant restaurant = restaurantOptional.get();
         restaurantRepository.delete(restaurant);
     }
+
+    @Override
+    public RestaurantDto findByName(String name) {
+        Optional<Restaurant> restaurantOptional = restaurantRepository.findByName(name);
+        if (restaurantOptional.isEmpty()) {
+            log.warn("Restaurant with name {} is not found!", name);
+            throw new RestaurantNotFoundException(String.format("Ресторан с названием %s не найден!", name));
+        }
+        Restaurant restaurant = restaurantOptional.get();
+        return ModelMapperUtil.map(restaurant, RestaurantDto.class);
+    }
+
 }
