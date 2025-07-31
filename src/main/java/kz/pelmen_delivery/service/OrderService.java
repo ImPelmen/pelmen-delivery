@@ -1,7 +1,7 @@
 package kz.pelmen_delivery.service;
 
 import kz.pelmen_delivery.model.dto.DomainOrderDto;
-import kz.pelmen_delivery.model.enums.OrderStatus;
+import kz.pelmen_delivery.model.entity.DomainOrder;
 import kz.pelmen_delivery.model.request.ChangeOrderStatusRequest;
 import kz.pelmen_delivery.model.request.OrderRequest;
 
@@ -17,7 +17,9 @@ public interface OrderService {
 
     DomainOrderDto clearOrder(Long id);
 
-    List<DomainOrderDto> getOrderByUsername(String username);
+    List<DomainOrderDto> getUsersOrder(String email);
 
-    DomainOrderDto changeOrderStatus(Long id, ChangeOrderStatusRequest request);
+    List<DomainOrderDto> getAvailableOrders(String email);
+
+    DomainOrderDto changeOrderStatus(Long id, ChangeOrderStatusRequest request, String email);
 }

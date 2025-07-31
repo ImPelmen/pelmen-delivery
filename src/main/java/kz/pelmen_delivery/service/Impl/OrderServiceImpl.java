@@ -2,18 +2,12 @@ package kz.pelmen_delivery.service.Impl;
 
 import jakarta.transaction.Transactional;
 import kz.pelmen_delivery.exception.*;
-import kz.pelmen_delivery.model.entity.DomainObject;
+import kz.pelmen_delivery.model.entity.*;
 import kz.pelmen_delivery.model.enums.OrderStatus;
 import kz.pelmen_delivery.model.dto.DomainOrderDto;
-import kz.pelmen_delivery.model.entity.DomainOrder;
-import kz.pelmen_delivery.model.entity.Meal;
-import kz.pelmen_delivery.model.entity.Restaurant;
 import kz.pelmen_delivery.model.request.ChangeOrderStatusRequest;
 import kz.pelmen_delivery.model.request.OrderRequest;
-import kz.pelmen_delivery.repository.DomainObjectRepository;
-import kz.pelmen_delivery.repository.DomainOrderRepository;
-import kz.pelmen_delivery.repository.MealRepository;
-import kz.pelmen_delivery.repository.RestaurantRepository;
+import kz.pelmen_delivery.repository.*;
 import kz.pelmen_delivery.service.OrderService;
 import kz.pelmen_delivery.util.ModelMapperUtil;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +32,8 @@ public class OrderServiceImpl implements OrderService {
 
     private final DomainObjectRepository domainObjectRepository;
 
+    private final DomainUserRepository domainUserRepository;
+
     @Override
     public List<DomainOrderDto> getAll() {
         return orderRepository.findAll()
@@ -47,24 +43,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public DomainOrderDto handleOrder(OrderRequest request, String username) {
+    public DomainOrderDto handleOrder(OrderRequest request, String email) {
         DomainOrder order;
         Long mealId = request.getMealId();
         Optional<Meal> mealOptional = mealRepository.findById(mealId);
         if (mealOptional.isEmpty()) {
-            log.error("Meal with id {} is not found while adding in order by user with username {}", mealId, username);
+            log.error("Meal with id {} is not found while adding in order by user with email {}", mealId, email);
             throw new MealNotFoundException(String.format("Блюдо с номером %s не найдено!", mealId));
         }
         Meal meal = mealOptional.get();
         try {
             order = orderRepository.findByRestaurantIdAndCreatedByAndStatusIn(meal.getMealCategory()
                                     .getRestaurant().getId(),
-                            username, OrderStatus.getActiveStatuses())
+                            email, OrderStatus.getActiveStatuses())
                     .orElseThrow(
                             () -> new OrderNotFoundException(""));
             order = addMeal(order, meal);
         } catch (OrderNotFoundException ignored) {
-            order = createOrder(request, username, meal);
+            order = createOrder(request, email, meal);
         }
         return ModelMapperUtil.map(order, DomainOrderDto.class);
     }
@@ -85,15 +81,22 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<DomainOrderDto> getOrderByUsername(String username) {
-        List<DomainOrder> orders = orderRepository.findAllByCreatedBy(username);
+    public List<DomainOrderDto> getUsersOrder(String email) {
+        List<DomainOrder> orders = orderRepository.findAllByCreatedBy(email);
         return orders.stream()
                 .map(order -> ModelMapperUtil.map(order, DomainOrderDto.class))
                 .toList();
     }
 
     @Override
-    public DomainOrderDto changeOrderStatus(Long id, ChangeOrderStatusRequest orderStatusRequest) {
+    public List<DomainOrderDto> getAvailableOrders(String email) {
+        //TODO: Здесь надо будет находить пользователя
+        //TODO: По роли уже надо будет определить дать запросы
+        return null;
+    }
+
+    @Override
+    public DomainOrderDto changeOrderStatus(Long id, ChangeOrderStatusRequest orderStatusRequest, String email) {
         //TODO: В дальнейшем надо будет проверять, может ли этот пользователь на данном этапе менять статус
         DomainOrder order = findOrderById(id);
         OrderStatus status = OrderStatus.findByTitle(orderStatusRequest.getStatusTitle());
@@ -111,11 +114,33 @@ public class OrderServiceImpl implements OrderService {
                 DomainObject domainObject = domainObjectOptional.get();
                 order.setDomainObject(domainObject);
             }
-            case IN_WORK -> {}
-            case WAITING_TO_PICKUP -> {}
-            case DELIVERING -> {}
-            case CANCELED -> {}
-            case DELIVERED -> {}
+            case IN_WORK -> {
+                //TODO: Делать ли проверку на ресторан?
+                order.setStatus(OrderStatus.IN_WORK);
+            }
+            case WAITING_TO_PICKUP -> {
+                order.setStatus(OrderStatus.WAITING_TO_PICKUP);
+            }
+            case DELIVERING -> {
+                if (!Objects.isNull(order.getAssignedOn())) {
+                    log.error("Order with id {} is already assigned by {}", id, order.getAssignedOn());
+                    throw new AlreadyAssignedException(String.format("Заказ с номером %s уже взять другим пользователем!", id));
+                }
+                Optional<DomainUser> userOptional = domainUserRepository.findByEmail(email);
+                if (userOptional.isEmpty()) {
+                    log.error("User with email {} is not found!", email);
+                    throw new UserNotFoundException(String.format("Пользователь с email %s не найден", email));
+                }
+                DomainUser user = userOptional.get();
+                order.setAssignedOn(user.getEmail());
+                order.setStatus(OrderStatus.DELIVERING);
+            }
+            case CANCELED -> {
+                order.setStatus(OrderStatus.CANCELED);
+            }
+            case DELIVERED -> {
+                order.setStatus(OrderStatus.DELIVERED);
+            }
             default -> {
                 log.error("Can not save status with title {} to order with id {}", orderStatusRequest.getStatusTitle(), id);
                 throw new IllegalStatusException(String.format("Нельзя присвоить статус %s к заказу!", orderStatusRequest.getStatusTitle()));
@@ -133,7 +158,7 @@ public class OrderServiceImpl implements OrderService {
         return ModelMapperUtil.map(order, DomainOrderDto.class);
     }
 
-    private DomainOrder createOrder(OrderRequest request, String username, Meal meal) {
+    private DomainOrder createOrder(OrderRequest request, String email, Meal meal) {
         Long restaurantId = meal.getMealCategory().getRestaurant().getId();
         Optional<Restaurant> restaurantOptional = restaurantRepository.findById(restaurantId);
         if (restaurantOptional.isEmpty()) {
@@ -142,7 +167,7 @@ public class OrderServiceImpl implements OrderService {
         Restaurant restaurant = restaurantOptional.get();
 
         DomainOrder domainOrder = DomainOrder.builder()
-                .createdBy(username)
+                .createdBy(email)
                 .restaurant(restaurant)
                 .meals(List.of(meal))
                 .status(OrderStatus.CREATED)

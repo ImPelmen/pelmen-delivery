@@ -28,8 +28,8 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<DomainOrderDto> handleOrder(
             @RequestBody @Valid OrderRequest request,
-            @RequestHeader(USERNAME_HEADER) String username) {
-        return ResponseEntity.ok(orderService.handleOrder(request, username));
+            @RequestHeader(USERNAME_HEADER) String email) {
+        return ResponseEntity.ok(orderService.handleOrder(request, email));
     }
 
     @PostMapping(value = "/{id}/clear")
@@ -40,8 +40,27 @@ public class OrderController {
 
     @PatchMapping(value = "/{id}/change-status")
     public ResponseEntity<DomainOrderDto> changeOrderStatus(
+            @RequestHeader(USERNAME_HEADER) String email,
             @PathVariable Long id,
             @RequestBody @Valid ChangeOrderStatusRequest request) {
-        return ResponseEntity.ok(orderService.changeOrderStatus(id, request));
+        return ResponseEntity.ok(orderService.changeOrderStatus(id, request, email));
+    }
+
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<DomainOrderDto> getOrderById(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(orderService.getOrderById(id));
+    }
+
+    @GetMapping(value = "/mine/orders")
+    public ResponseEntity<List<DomainOrderDto>> getUserOrders(
+            @RequestHeader(USERNAME_HEADER) String email) {
+        return ResponseEntity.ok(orderService.getUsersOrder(email));
+    }
+
+    @GetMapping(value = "/available")
+    public ResponseEntity<List<DomainOrderDto>> getCourierOrders(
+            @RequestHeader(USERNAME_HEADER) String email) {
+        return ResponseEntity.ok().build();
     }
 }

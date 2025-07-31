@@ -91,4 +91,18 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         return new ResponseEntity<>(new ErrorResponse(status, e.getMessage()), status);
     }
+
+    @ExceptionHandler(AlreadyAssignedException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseEntity<ErrorResponse> handleAlreadyAssignedException(AlreadyAssignedException e) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        return new ResponseEntity<>(new ErrorResponse(status, e.getMessage()), status);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException e) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        return new ResponseEntity<>(new ErrorResponse(status, e.getMessage()), status);
+    }
 }
