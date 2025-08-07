@@ -1,0 +1,25 @@
+package kz.pelmen_delivery.model.enums;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public enum RoleTitle {
+    CLIENT("Клиент"),
+    RESTAURANT("Ресторан"),
+    COURIER("Курьер"),
+    ADMIN("Администратор");
+
+    private final String name;
+
+    public static RoleTitle findByName(String name) {
+        for (RoleTitle roleTitle : values()) {
+            if (roleTitle.getName().equals(name)) {
+                return roleTitle;
+            }
+        }
+
+        return null;
+    }
+}
