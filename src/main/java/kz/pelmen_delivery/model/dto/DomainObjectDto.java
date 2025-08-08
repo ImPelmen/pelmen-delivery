@@ -25,6 +25,8 @@ public class DomainObjectDto {
 
     private Long userId;
 
+    private Long regionId;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

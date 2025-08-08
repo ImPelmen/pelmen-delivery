@@ -1,6 +1,7 @@
 package kz.pelmen_delivery.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import kz.pelmen_delivery.model.enums.RoleTitle;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +18,7 @@ public class RoleDto {
 
     private Long id;
 
-    private String name;
+    private RoleTitle name;
 
     private LocalDateTime createdAt;
 
