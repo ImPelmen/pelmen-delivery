@@ -1,7 +1,9 @@
 package kz.pelmen_delivery.service.Impl;
 
+import jakarta.transaction.Transactional;
 import kz.pelmen_delivery.exception.RestaurantAlreadyExistsException;
 import kz.pelmen_delivery.exception.RestaurantNotFoundException;
+import kz.pelmen_delivery.model.dto.RestaurantSimpleDto;
 import kz.pelmen_delivery.util.ModelMapperUtil;
 import kz.pelmen_delivery.model.dto.RestaurantDto;
 import kz.pelmen_delivery.model.entity.Restaurant;
@@ -23,10 +25,10 @@ public class RestaurantServiceImpl implements RestaurantService {
     private final RestaurantRepository restaurantRepository;
 
     @Override
-    public List<RestaurantDto> getAllRestaurants() {
+    public List<RestaurantSimpleDto> getAllRestaurants() {
         List<Restaurant> restaurants = restaurantRepository.findAll();
         return restaurants.stream()
-                .map(restaurant -> ModelMapperUtil.map(restaurant, RestaurantDto.class)).toList();
+                .map(restaurant -> ModelMapperUtil.map(restaurant, RestaurantSimpleDto.class)).toList();
     }
 
     @Override

@@ -50,7 +50,6 @@ public class AuthServiceImpl implements AuthService {
         Role role = roleRepository.findByName(RoleTitle.CLIENT)
                 .orElseThrow(
                         () -> new RoleNotFoundException(String.format("Роль %s не найдена!", RoleTitle.CLIENT)));
-        //TODO: Доабвить сюда дефолтную ролдь пользователя
         DomainUser user = DomainUser.builder()
                 .surname(request.getSurname())
                 .name(request.getName())

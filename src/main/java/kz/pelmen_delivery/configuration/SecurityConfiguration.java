@@ -31,6 +31,10 @@ public class SecurityConfiguration {
             throws Exception {
         http.authorizeHttpRequests(auth ->
                     auth.requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                            .requestMatchers("/admin**").hasAuthority("ADMIN")
+                            .requestMatchers("/restaurant-admin**").hasAnyAuthority("RESTAURANT_ADMIN", "ADMIN")
+                            .requestMatchers("/category").hasAnyAuthority("RESTAURANT_ADMIN", "ADMIN")
+                            .requestMatchers("/meal").hasAnyAuthority("RESTAURANT_ADMIN", "ADMIN")
                             .anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authenticationProvider(authenticationProvider())

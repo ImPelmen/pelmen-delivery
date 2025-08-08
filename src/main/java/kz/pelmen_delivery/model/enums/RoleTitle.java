@@ -9,7 +9,8 @@ public enum RoleTitle {
     CLIENT("Клиент"),
     RESTAURANT("Ресторан"),
     COURIER("Курьер"),
-    ADMIN("Администратор");
+    ADMIN("Администратор"),
+    RESTAURANT_ADMIN("Администратор ресторана");
 
     private final String name;
 

@@ -17,4 +17,11 @@ public interface DomainOrderRepository extends JpaRepository<DomainOrder, Long> 
                                                                    Set<OrderStatus> statuses);
 
     List<DomainOrder> findAllByCreatedBy(String username);
+
+    Optional<List<DomainOrder>> findAllByStatusIn(Set<OrderStatus> statuses);
+
+    Optional<List<DomainOrder>> findAllByRestaurantIdAndStatusIn(Long restaurantId, Set<OrderStatus> statuses);
+
+    Optional<List<DomainOrder>> findAllByAssignedOnAndStatusIn(String email, Set<OrderStatus> statuses);
+    Optional<List<DomainOrder>> findAllByAssignedOn(String email);
 }
