@@ -3,6 +3,7 @@ package kz.pelmen_delivery.service.Impl;
 import kz.pelmen_delivery.exception.RestaurantNotFoundException;
 import kz.pelmen_delivery.exception.RoleNotFoundException;
 import kz.pelmen_delivery.exception.UserNotFoundException;
+import kz.pelmen_delivery.model.dto.DomainUserDto;
 import kz.pelmen_delivery.model.entity.DomainUser;
 import kz.pelmen_delivery.model.entity.Restaurant;
 import kz.pelmen_delivery.model.entity.RestaurantUser;
@@ -14,10 +15,12 @@ import kz.pelmen_delivery.repository.RestaurantRepository;
 import kz.pelmen_delivery.repository.RestaurantUserRepository;
 import kz.pelmen_delivery.repository.RoleRepository;
 import kz.pelmen_delivery.service.RestaurantEmployeeService;
+import kz.pelmen_delivery.util.ModelMapperUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -32,6 +35,22 @@ public class RestaurantEmployeeServiceImpl implements RestaurantEmployeeService 
     private final RestaurantUserRepository restaurantUserRepository;
 
     private final RoleRepository roleRepository;
+
+    @Override
+    public List<DomainUserDto> getRestaurantEmployees(Long id) {
+        Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(() -> {
+            log.error("Restaurant with id {} is not found!", id);
+            return new RestaurantNotFoundException(String.format("Ресторан с номером %s не найден!", id));
+        });
+        List<RestaurantUser> restaurantUsers = restaurantUserRepository.findByRestaurant(restaurant).orElse(Collections.emptyList());
+        return restaurantUsers.stream().map(restaurantUser -> {
+            return domainUserRepository.findByEmail(restaurantUser.getUserLogin()).map(user -> ModelMapperUtil.map(user, DomainUserDto.class))
+                    .orElseThrow(() -> {
+                        log.error("User with email {} is not found!", restaurantUser.getUserLogin());
+                        return new UserNotFoundException(String.format("Пользователь с email %s не найден!", restaurantUser.getUserLogin()));
+                    });
+        }).toList();
+    }
 
     @Override
     public void addEmployee(Long id, EmployeeRequest request) {

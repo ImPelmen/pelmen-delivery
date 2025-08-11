@@ -3,6 +3,7 @@ package kz.pelmen_delivery.controller;
 import jakarta.validation.Valid;
 import kz.pelmen_delivery.model.dto.DomainUserDto;
 import kz.pelmen_delivery.model.dto.RestaurantSimpleDto;
+import kz.pelmen_delivery.model.request.AddRoleRequest;
 import kz.pelmen_delivery.model.request.DomainUserRequest;
 import kz.pelmen_delivery.model.request.RestaurantRequest;
 import kz.pelmen_delivery.service.DomainUserService;
@@ -58,6 +59,14 @@ public class AdminController {
     public ResponseEntity<Void> deleteUser(
             @PathVariable Long id) {
         domainUserService.deleteUser(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/user/{id}/add-role")
+    public ResponseEntity<Void> addRole(
+            @PathVariable Long id,
+            @RequestBody @Valid AddRoleRequest request) {
+        domainUserService.addRole(id, request);
         return ResponseEntity.ok().build();
     }
 }

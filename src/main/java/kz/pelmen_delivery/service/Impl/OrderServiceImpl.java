@@ -77,6 +77,7 @@ public class OrderServiceImpl implements OrderService {
     public DomainOrderDto clearOrder(Long id) {
         DomainOrder order = findOrderById(id);
         order.getMeals().clear();
+        order.setTotalPrice(0L);
         orderRepository.save(order);
         return ModelMapperUtil.map(order, DomainOrderDto.class);
     }
@@ -219,6 +220,7 @@ public class OrderServiceImpl implements OrderService {
                 .restaurant(restaurant)
                 .meals(List.of(meal))
                 .status(OrderStatus.CREATED)
+                .totalPrice(meal.getPrice())
                 .build();
         orderRepository.save(domainOrder);
         return domainOrder;
@@ -227,7 +229,9 @@ public class OrderServiceImpl implements OrderService {
     private DomainOrder addMeal(DomainOrder order, Meal meal) {
         List<Meal> meals = order.getMeals();
         meals.add(meal);
+        Long totalPrice = meals.stream().mapToLong(Meal::getPrice).sum();
         order.setMeals(meals);
+        order.setTotalPrice(totalPrice);
         orderRepository.save(order);
         return order;
     }

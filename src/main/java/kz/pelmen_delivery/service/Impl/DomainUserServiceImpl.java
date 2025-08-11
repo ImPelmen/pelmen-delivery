@@ -1,10 +1,13 @@
 package kz.pelmen_delivery.service.Impl;
 
+import kz.pelmen_delivery.exception.AlreadyAssignedException;
 import kz.pelmen_delivery.exception.RoleNotFoundException;
 import kz.pelmen_delivery.exception.UserNotFoundException;
 import kz.pelmen_delivery.model.dto.DomainUserDto;
 import kz.pelmen_delivery.model.entity.DomainUser;
 import kz.pelmen_delivery.model.entity.Role;
+import kz.pelmen_delivery.model.enums.RoleTitle;
+import kz.pelmen_delivery.model.request.AddRoleRequest;
 import kz.pelmen_delivery.model.request.DomainUserRequest;
 import kz.pelmen_delivery.repository.DomainUserRepository;
 import kz.pelmen_delivery.repository.RoleRepository;
@@ -18,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -65,18 +69,44 @@ public class DomainUserServiceImpl implements DomainUserService {
         updateUser(request, user);
     }
 
+
     private void updateUser(DomainUserRequest request, DomainUser user) {
-        Set<Role> newRoles = request.getRoles().stream().map(role ->
-                roleRepository.findByName(role).orElseThrow(() -> {
-                    log.error("Role with RoleTitle name {} is not found", role.getName());
-                    return new RoleNotFoundException(String.format("Роль с названием %s не найдена", role.getName()));
-                })).collect(Collectors.toSet());
-        newRoles.addAll(user.getRoles());
-        user.setRoles(newRoles.stream().toList());
-        user.setName(request.getName());
-        user.setPhoneNumber(request.getPhoneNumber());
-        user.setEmail(request.getEmail());
-        user.setSurname(request.getSurname());
+        try {
+            Set<Role> newRoles = request.getRoles().stream().map(role ->
+                    roleRepository.findByName(role).orElseThrow(() -> {
+                        log.error("Role with RoleTitle name {} is not found", role.getName());
+                        return new RoleNotFoundException(String.format("Роль с названием %s не найдена", role.getName()));
+                    })).collect(Collectors.toSet());
+            newRoles.addAll(user.getRoles());
+            user.setRoles(newRoles.stream().toList());
+            user.setName(request.getName());
+            user.setPhoneNumber(request.getPhoneNumber());
+            user.setEmail(request.getEmail());
+            user.setSurname(request.getSurname());
+            domainUserRepository.save(user);
+        } catch (Exception e) {
+            log.error("Error updating user: {}", e.getMessage(), e);
+            if (e instanceof InvocationTargetException) {
+                log.error("Caused by: {}", e.getCause(), e.getCause());
+            }
+            throw e;
+        }
+    }
+
+    @Override
+    public void addRole(Long id, AddRoleRequest request) {
+        RoleTitle roleTitle = request.getRoleTitle();
+        DomainUser user = domainUserRepository.findById(id)
+                .orElseThrow(() ->
+                        new UserNotFoundException(String.format("Пользователь с номером %s не найден!", id)));
+        Role role = roleRepository.findByName(roleTitle)
+                .orElseThrow(() ->
+                        new RoleNotFoundException(String.format("Роль с именем %s не найдена!", roleTitle)));
+        if (user.getRoles().stream().anyMatch(r -> r.getName().equals(role.getName()))) {
+            log.warn("Role {} already assigned to user {}", role.getName(), id);
+            throw new AlreadyAssignedException("У пользователя уже существует роль!");
+        }
+        user.getRoles().add(role);
         domainUserRepository.save(user);
     }
 

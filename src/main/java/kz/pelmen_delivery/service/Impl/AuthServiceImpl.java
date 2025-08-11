@@ -22,8 +22,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -39,6 +38,8 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
 
     private final RoleRepository roleRepository;
+
+    private final Set<String> tokenBlackList = new HashSet<>();
 
     @Override
     public AuthResponse register(RegisterUserRequest request) {
@@ -65,6 +66,16 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .token(jwt)
                 .build();
+    }
+
+    @Override
+    public void logout(String authHeader) {
+        if (Objects.isNull(authHeader) || !authHeader.startsWith("Bearer ")) {
+            return;
+        }
+
+        String token = authHeader.substring(7).trim();
+        jwtUtil.blackListToken(token);
     }
 
     private boolean emailExists(String email) {

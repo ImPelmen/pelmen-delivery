@@ -16,7 +16,7 @@ public enum RoleTitle {
 
     public static RoleTitle findByName(String name) {
         for (RoleTitle roleTitle : values()) {
-            if (roleTitle.getName().equals(name)) {
+            if (roleTitle.name().equals(name)) {
                 return roleTitle;
             }
         }

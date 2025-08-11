@@ -126,4 +126,11 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.NOT_FOUND;
         return new ResponseEntity<>(new ErrorResponse(status, e.getMessage()), status);
     }
+
+    @ExceptionHandler(DomainObjectNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<ErrorResponse> handleDomainObjectNotFoundException(DomainObjectNotFoundException e) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        return new ResponseEntity<>(new ErrorResponse(status, e.getMessage()), status);
+    }
 }

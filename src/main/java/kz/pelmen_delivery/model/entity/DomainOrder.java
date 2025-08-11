@@ -35,6 +35,9 @@ public class DomainOrder {
     @Column(name = "status")
     private OrderStatus status;
 
+    @Column(name = "total_price")
+    private Long totalPrice;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id")
     @JsonBackReference

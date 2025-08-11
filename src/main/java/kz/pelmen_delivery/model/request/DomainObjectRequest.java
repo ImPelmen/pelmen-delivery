@@ -15,7 +15,5 @@ public class DomainObjectRequest {
 
     private boolean isApartment;
 
-    private Long userId;
-
     private Long regionId;
 }

@@ -31,8 +31,9 @@ public class RestaurantAdminController {
     }
 
     @GetMapping("/{id}/employees")
-    public ResponseEntity<List<RestaurantUserDto>> getRestaurantEmployees() {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<List<DomainUserDto>> getRestaurantEmployees(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(restaurantEmployeeService.getRestaurantEmployees(id));
     }
 
     @PostMapping("/restaurant/{id}/employee")

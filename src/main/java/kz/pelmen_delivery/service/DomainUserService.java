@@ -1,6 +1,8 @@
 package kz.pelmen_delivery.service;
 
 import kz.pelmen_delivery.model.dto.DomainUserDto;
+import kz.pelmen_delivery.model.enums.RoleTitle;
+import kz.pelmen_delivery.model.request.AddRoleRequest;
 import kz.pelmen_delivery.model.request.DomainUserRequest;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
@@ -21,4 +23,6 @@ public interface DomainUserService extends UserDetailsService {
     void updateDomainUserByEmail(String email, DomainUserRequest request);
 
     void deleteUserByEmail(String email);
+
+    void addRole(Long id, AddRoleRequest request);
 }

@@ -24,6 +24,8 @@ public class DomainOrderDto {
 
     private String createdBy;
 
+    private Long totalPrice;
+
     private List<MealDto> meals;
 
     private RestaurantShortDto restaurant;
