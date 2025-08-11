@@ -22,8 +22,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -40,6 +39,8 @@ public class AuthServiceImpl implements AuthService {
 
     private final RoleRepository roleRepository;
 
+    private final Set<String> tokenBlackList = new HashSet<>();
+
     @Override
     public AuthResponse register(RegisterUserRequest request) {
         String email = request.getEmail();
@@ -50,7 +51,6 @@ public class AuthServiceImpl implements AuthService {
         Role role = roleRepository.findByName(RoleTitle.CLIENT)
                 .orElseThrow(
                         () -> new RoleNotFoundException(String.format("Роль %s не найдена!", RoleTitle.CLIENT)));
-        //TODO: Доабвить сюда дефолтную ролдь пользователя
         DomainUser user = DomainUser.builder()
                 .surname(request.getSurname())
                 .name(request.getName())
@@ -66,6 +66,16 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .token(jwt)
                 .build();
+    }
+
+    @Override
+    public void logout(String authHeader) {
+        if (Objects.isNull(authHeader) || !authHeader.startsWith("Bearer ")) {
+            return;
+        }
+
+        String token = authHeader.substring(7).trim();
+        jwtUtil.blackListToken(token);
     }
 
     private boolean emailExists(String email) {

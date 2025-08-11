@@ -1,5 +1,6 @@
 package kz.pelmen_delivery.model.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,11 +10,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DomainObjectRequest {
+public class EmployeeRequest {
 
-    private String address;
-
-    private boolean isApartment;
-
-    private Long regionId;
+    @NotBlank(message = "Сотрудник должен иметь email!")
+    private String email;
 }

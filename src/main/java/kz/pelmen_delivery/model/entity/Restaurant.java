@@ -37,10 +37,11 @@ public class Restaurant {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "restaurant")
     private List<MealCategory> mealCategories = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "restaurant")
     private List<DomainOrder> orders = new ArrayList<>();
 
-    @JsonManagedReference
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "restaurant")
     private List<RestaurantUser> restaurantUsers = new ArrayList<>();
 

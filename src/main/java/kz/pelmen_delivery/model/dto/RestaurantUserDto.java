@@ -17,6 +17,8 @@ public class RestaurantUserDto {
 
     private String userLogin;
 
+    private RestaurantSimpleDto restaurant;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

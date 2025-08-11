@@ -2,13 +2,14 @@ package kz.pelmen_delivery.service;
 
 
 import kz.pelmen_delivery.model.dto.RestaurantDto;
+import kz.pelmen_delivery.model.dto.RestaurantSimpleDto;
 import kz.pelmen_delivery.model.request.RestaurantRequest;
 
 import java.util.List;
 
 public interface RestaurantService {
 
-    List<RestaurantDto> getAllRestaurants();
+    List<RestaurantSimpleDto> getAllRestaurants();
 
     void createRestaurant(RestaurantRequest request);
 

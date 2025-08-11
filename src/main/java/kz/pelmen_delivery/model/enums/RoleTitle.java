@@ -9,13 +9,14 @@ public enum RoleTitle {
     CLIENT("Клиент"),
     RESTAURANT("Ресторан"),
     COURIER("Курьер"),
-    ADMIN("Администратор");
+    ADMIN("Администратор"),
+    RESTAURANT_ADMIN("Администратор ресторана");
 
     private final String name;
 
     public static RoleTitle findByName(String name) {
         for (RoleTitle roleTitle : values()) {
-            if (roleTitle.getName().equals(name)) {
+            if (roleTitle.name().equals(name)) {
                 return roleTitle;
             }
         }

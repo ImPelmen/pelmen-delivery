@@ -30,7 +30,12 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
         http.authorizeHttpRequests(auth ->
-                    auth.requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                    auth.requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/auth/logout").authenticated()
+                            .requestMatchers("/admin/**").hasRole("ADMIN")
+                            .requestMatchers("/restaurant-admin/**").hasAnyRole("RESTAURANT_ADMIN", "ADMIN")
+                            .requestMatchers("/category").hasAnyRole("RESTAURANT_ADMIN", "ADMIN")
+                            .requestMatchers("/meal").hasAnyRole("RESTAURANT_ADMIN", "ADMIN")
                             .anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authenticationProvider(authenticationProvider())

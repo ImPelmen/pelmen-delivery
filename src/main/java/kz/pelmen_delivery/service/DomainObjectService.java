@@ -9,9 +9,11 @@ public interface DomainObjectService {
 
     List<DomainObjectDto> findAll();
 
-    void createDomainObject(DomainObjectRequest request);
+    List<DomainObjectDto> findAllUsers(String email);
+
+    void createDomainObject(String email, DomainObjectRequest request);
 
     DomainObjectDto findById(Long id);
 
-    void updateDomainObject(Long id, DomainObjectRequest request);
+    void updateDomainObject(String email, Long id, DomainObjectRequest request);
 }

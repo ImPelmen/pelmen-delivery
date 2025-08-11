@@ -1,8 +1,5 @@
 package kz.pelmen_delivery.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +12,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RestaurantDto {
+public class RestaurantSimpleDto {
 
     private Long id;
 
@@ -24,12 +21,6 @@ public class RestaurantDto {
     private String address;
 
     private String description;
-
-    private List<MealCategoryDto> mealCategories;
-
-    private List<DomainOrderDto> orders;
-
-    private List<RestaurantUserDto> employees;
 
     private LocalDateTime createdAt;
 

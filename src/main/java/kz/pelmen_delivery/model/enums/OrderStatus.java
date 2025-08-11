@@ -32,4 +32,16 @@ public enum OrderStatus {
     public static Set<OrderStatus> getActiveStatuses() {
         return Set.of(CREATED);
     }
+
+    public static Set<OrderStatus> getRestaurantAvailableStatuses() {
+        return Set.of(OPENED);
+    }
+
+    public static Set<OrderStatus> getCourierAvailableStatuses() {
+        return Set.of(WAITING_TO_PICKUP);
+    }
+
+    public static Set<OrderStatus> getClosedStatuses() {
+        return Set.of(DELIVERED, CANCELED);
+    }
 }

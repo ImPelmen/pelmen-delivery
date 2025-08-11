@@ -5,6 +5,7 @@ import kz.pelmen_delivery.exception.*;
 import kz.pelmen_delivery.model.entity.*;
 import kz.pelmen_delivery.model.enums.OrderStatus;
 import kz.pelmen_delivery.model.dto.DomainOrderDto;
+import kz.pelmen_delivery.model.enums.RoleTitle;
 import kz.pelmen_delivery.model.request.ChangeOrderStatusRequest;
 import kz.pelmen_delivery.model.request.OrderRequest;
 import kz.pelmen_delivery.repository.*;
@@ -15,9 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -33,6 +32,8 @@ public class OrderServiceImpl implements OrderService {
     private final DomainObjectRepository domainObjectRepository;
 
     private final DomainUserRepository domainUserRepository;
+
+    private final RestaurantUserRepository restaurantUserRepository;
 
     @Override
     public List<DomainOrderDto> getAll() {
@@ -76,6 +77,7 @@ public class OrderServiceImpl implements OrderService {
     public DomainOrderDto clearOrder(Long id) {
         DomainOrder order = findOrderById(id);
         order.getMeals().clear();
+        order.setTotalPrice(0L);
         orderRepository.save(order);
         return ModelMapperUtil.map(order, DomainOrderDto.class);
     }
@@ -90,9 +92,72 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<DomainOrderDto> getAvailableOrders(String email) {
-        //TODO: Здесь надо будет находить пользователя
-        //TODO: По роли уже надо будет определить дать запросы
-        return null;
+        DomainUser user = domainUserRepository.findByEmail(email).orElseThrow(() -> {
+            log.error("User with email {} is not found while getting available orders!", email);
+            return new UserNotFoundException(String.format("Пользователь с email %s не найден!", email));
+        });
+        List<RoleTitle> userRoleTitles = getUsersRoleTitleList(user);
+        List<DomainOrderDto> availableOrders;
+        if (userRoleTitles.contains(RoleTitle.COURIER)) {
+            availableOrders = orderRepository.findAllByStatusIn(OrderStatus.getCourierAvailableStatuses())
+                    .map(orders -> orders.stream()
+                            .map(order -> ModelMapperUtil.map(order, DomainOrderDto.class))
+                            .toList())
+                    .orElseGet(Collections::emptyList);
+        } else if (userRoleTitles.contains(RoleTitle.RESTAURANT)) {
+            RestaurantUser restaurantUser = restaurantUserRepository.findByUserLogin(email).orElseThrow(() -> {
+                log.error("User with email {} is not employee", email);
+                return new UserIsNotEmployeeException(
+                        String.format("Пользователь с email %s не является работником ресторанов!", email));
+            });
+            availableOrders = orderRepository.
+                    findAllByRestaurantIdAndStatusIn(restaurantUser.getRestaurant().getId(),
+                            OrderStatus.getRestaurantAvailableStatuses())
+                    .map(orders -> orders.stream()
+                            .map(order -> ModelMapperUtil.map(order, DomainOrderDto.class))
+                            .toList())
+                    .orElseGet(Collections::emptyList);
+        } else {
+            availableOrders = Collections.emptyList();
+        }
+
+        return availableOrders;
+    }
+
+    private List<RoleTitle> getUsersRoleTitleList(DomainUser user) {
+        return Optional.of(user)
+                .map(DomainUser::getRoles)
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(role -> RoleTitle.findByName(role.getName().name()))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    @Override
+    public List<DomainOrderDto> getCourierOrderHistory(String email) {
+        DomainUser user = domainUserRepository.findByEmail(email).orElseThrow(() -> {
+            log.error("User with email {} is not found while getting available orders!", email);
+            return new UserNotFoundException(String.format("Пользователь с email %s не найден!", email));
+        });
+        return orderRepository.findAllByAssignedOnAndStatusIn(email, OrderStatus.getClosedStatuses())
+                .map(orders -> orders.stream()
+                        .map(order -> ModelMapperUtil.map(order, DomainOrderDto.class))
+                        .toList())
+                .orElseGet(Collections::emptyList);
+    }
+
+    @Override
+    public List<DomainOrderDto> getCourierAllOrders(String email) {
+        DomainUser user = domainUserRepository.findByEmail(email).orElseThrow(() -> {
+            log.error("User with email {} is not found while getting available orders!", email);
+            return new UserNotFoundException(String.format("Пользователь с email %s не найден!", email));
+        });
+        return orderRepository.findAllByAssignedOn(email)
+                .map(orders -> orders.stream()
+                        .map(order -> ModelMapperUtil.map(order, DomainOrderDto.class))
+                        .toList())
+                .orElseGet(Collections::emptyList);
     }
 
     @Override
@@ -114,13 +179,8 @@ public class OrderServiceImpl implements OrderService {
                 DomainObject domainObject = domainObjectOptional.get();
                 order.setDomainObject(domainObject);
             }
-            case IN_WORK -> {
-                //TODO: Делать ли проверку на ресторан?
-                order.setStatus(OrderStatus.IN_WORK);
-            }
-            case WAITING_TO_PICKUP -> {
-                order.setStatus(OrderStatus.WAITING_TO_PICKUP);
-            }
+            case IN_WORK -> order.setStatus(OrderStatus.IN_WORK);
+            case WAITING_TO_PICKUP -> order.setStatus(OrderStatus.WAITING_TO_PICKUP);
             case DELIVERING -> {
                 if (!Objects.isNull(order.getAssignedOn())) {
                     log.error("Order with id {} is already assigned by {}", id, order.getAssignedOn());
@@ -135,25 +195,14 @@ public class OrderServiceImpl implements OrderService {
                 order.setAssignedOn(user.getEmail());
                 order.setStatus(OrderStatus.DELIVERING);
             }
-            case CANCELED -> {
-                order.setStatus(OrderStatus.CANCELED);
-            }
-            case DELIVERED -> {
-                order.setStatus(OrderStatus.DELIVERED);
-            }
+            case CANCELED -> order.setStatus(OrderStatus.CANCELED);
+            case DELIVERED -> order.setStatus(OrderStatus.DELIVERED);
             default -> {
                 log.error("Can not save status with title {} to order with id {}", orderStatusRequest.getStatusTitle(), id);
                 throw new IllegalStatusException(String.format("Нельзя присвоить статус %s к заказу!", orderStatusRequest.getStatusTitle()));
             }
         }
         order.setStatus(status);
-        orderRepository.save(order);
-        return ModelMapperUtil.map(order, DomainOrderDto.class);
-    }
-
-    public DomainOrderDto confirmOrder(Long id) {
-        DomainOrder order = findOrderById(id);
-        order.setStatus(OrderStatus.OPENED);
         orderRepository.save(order);
         return ModelMapperUtil.map(order, DomainOrderDto.class);
     }
@@ -171,6 +220,7 @@ public class OrderServiceImpl implements OrderService {
                 .restaurant(restaurant)
                 .meals(List.of(meal))
                 .status(OrderStatus.CREATED)
+                .totalPrice(meal.getPrice())
                 .build();
         orderRepository.save(domainOrder);
         return domainOrder;
@@ -179,7 +229,9 @@ public class OrderServiceImpl implements OrderService {
     private DomainOrder addMeal(DomainOrder order, Meal meal) {
         List<Meal> meals = order.getMeals();
         meals.add(meal);
+        Long totalPrice = meals.stream().mapToLong(Meal::getPrice).sum();
         order.setMeals(meals);
+        order.setTotalPrice(totalPrice);
         orderRepository.save(order);
         return order;
     }

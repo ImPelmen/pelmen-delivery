@@ -22,4 +22,8 @@ public interface OrderService {
     List<DomainOrderDto> getAvailableOrders(String email);
 
     DomainOrderDto changeOrderStatus(Long id, ChangeOrderStatusRequest request, String email);
+
+    List<DomainOrderDto> getCourierOrderHistory(String email);
+
+    List<DomainOrderDto> getCourierAllOrders(String email);
 }

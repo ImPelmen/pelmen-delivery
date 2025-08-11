@@ -59,8 +59,8 @@ public class OrderController {
     }
 
     @GetMapping(value = "/available")
-    public ResponseEntity<List<DomainOrderDto>> getCourierOrders(
+    public ResponseEntity<List<DomainOrderDto>> getAvailableOrders(
             @RequestHeader(USERNAME_HEADER) String email) {
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(orderService.getAvailableOrders(email));
     }
 }
